@@ -14,7 +14,7 @@ public class AppRunner {
 
 
 			// USE PROXY (switch off before commit)
-			//PROXY = Boolean.TRUE;
+			PROXY = Boolean.TRUE;
 
 			Product product = DataSaver.getData(URL, PROXY);
 
