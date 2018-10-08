@@ -13,16 +13,21 @@ public class DataSaver {
 
 	private final static String SEP = System.getProperty("line.separator");
 
+	/**
+	 * @param url
+	 * @param proxy
+	 * @return
+	 */
 	public static Product getData(String url, Boolean proxy) {
 		Product product = null;
 		Document doc = null;
 		String product_name = "UNDEFINED";
 		String product_url = url;
-		String product_artID = "UNDEFINED";
+		String product_asin = "UNDEFINED";
 		String product_price = "UNDEFINED";
 		String product_availability = "UNDEFINED";
 		String product_description = "UNDEFINED";
-		
+
 		try {
 			if (proxy) {
 				System.setProperty("http.proxyHost", "127.0.0.1");
@@ -34,45 +39,66 @@ public class DataSaver {
 
 			Connection connection = Jsoup.connect(url);
 			connection.userAgent("Mozilla/5.0");
-			connection.referrer("http://amason.com");
+			connection.referrer("https://amason.com");
 			connection.timeout(30 * 1000);
 			doc = connection.get();
 
 			/** Data from title */
-			Element getDivTitle = doc.getElementById("titleSection");
-			// String[] product_title_quals = getDivTitle.text().split(",");
-			product_name = getDivTitle.text();
-
-			
 			try {
-			Element getDivPrice = doc.getElementById("priceblock_ourprice");
-			//product_price = getDivPrice.text();
+				Element getDivTitle = doc.getElementById("titleSection");
+				// String[] product_title_quals = getDivTitle.text().split(",");
+				product_name = getDivTitle.text();
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
-			catch (NullPointerException ex) {
+
+			try {
+				Element getDivPrice = doc.getElementById("priceblock_ourprice");
+				product_price = getDivPrice.text();
+			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
-			
-			
-			Element getDivAvailability = doc.getElementById("availability");
-			product_availability = getDivAvailability.text();
-			
-			
-			///////////////////////////////////
+
+			try {
+				Element getDivAvailability = doc.getElementById("availability");
+				product_availability = getDivAvailability.text();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+			/** Get ASIN from the URL */
+			String[] url_parts = url.split("/");
+			int i = 0;
+			for (String part : url_parts) {
+				i++;
+				if (part.equals("dp")) {
+					break;
+				}
+			}
+			product_asin = url_parts[i];
+
 			/** Data from list */
-/*			Element getDivQuals = doc.getElementById("feature-bullets");
-			Elements quals = getDivQuals.select("span");
-*/
+			Element getDivQuals = doc.getElementById("feature-bullets");
+			Elements quals = getDivQuals.getElementsByClass("a-list-item");
+
 			/** Elements to array */
-/*			int i = 0;
-			String product_quals[] = new String[quals.size()];
+			/* HOW TO ELIMINATE THIS TAG?!
+			 * <span class="a-list-item"> <span id="replacementPartsFitmentBulletInner"> <a
+			 * class="a-link-normal hsx-rpp-fitment-focus" href="#">Make sure this fits</a>
+			 * <span>by entering your model number.</span> </span> </span>
+			 * qual.text() = Make sure this fits by entering your model number.
+			 */
+			
+			StringBuilder product_description_sb = new StringBuilder();
 			for (Element qual : quals) {
-				product_quals[i++] = qual.text();
-			}*/
-			/////////////////////////////////
-			
-			
-			
-			product = new Product(product_name, product_url, product_artID, product_price, product_availability, product_description);
+					product_description_sb.append(qual.text() + SEP);
+			}
+			product_description = product_description_sb.toString();
+
+
+
+			product = new Product(product_name, product_url, product_asin, product_price, product_availability,
+					product_description);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -90,7 +116,17 @@ public class DataSaver {
 		}
 	}
 
-	/** Parse to XML.*/
+	/** Surround XML */
+	private static String surroundWithXML(String tagName, String value) {
+		StringBuilder result = new StringBuilder();
+		result.append("		<" + tagName + ">" + SEP);
+		result.append("		" + value);
+		result.append(SEP);
+		result.append("		</" + tagName + ">" + SEP);
+		return result.toString();
+	}
+
+	/** Parse to XML. */
 	public static String toXML(Product product) {
 		StringBuilder result = new StringBuilder();
 
@@ -99,30 +135,19 @@ public class DataSaver {
 
 		result.append("<items>" + SEP);
 		result.append("	<item>" + SEP);
-		
-		result.append("		<name>" + SEP);
-		result.append("		" + product.getName());
-		result.append(SEP);
-		result.append("		</name>" + SEP);
 
-		result.append("		<price>" + SEP);
-		result.append("		" + product.getPrice());
-		result.append(SEP);
-		result.append("		</price>" + SEP);
-		
-		result.append("		<availability>" + SEP);
-		result.append("		" + product.getAvailability());
-		result.append(SEP);
-		result.append("		</availability>" + SEP);
-/*		for (String qual : product.quals) {
-			if (!qual.isEmpty()) {
-				result.append("		<description>" + SEP);
-				result.append("		" + qual);
-				result.append(SEP);
-				result.append("		</description>" + SEP);
-			}
-		}
-*/
+		result.append(surroundWithXML("name", product.getName()));
+		result.append(surroundWithXML("price", product.getPrice()));
+		result.append(surroundWithXML("availability", product.getAvailability()));
+		result.append(surroundWithXML("url", product.getUrl()));
+		result.append(surroundWithXML("asin", product.getAsin()));
+		result.append(surroundWithXML("description", product.getDescription()));
+
+		/*
+		 * for (String qual : product.quals) { if (!qual.isEmpty()) {
+		 * result.append("		<description>" + SEP); result.append("		" + qual);
+		 * result.append(SEP); result.append("		</description>" + SEP); } }
+		 */
 		result.append("	</item>" + SEP);
 		result.append("</items>");
 

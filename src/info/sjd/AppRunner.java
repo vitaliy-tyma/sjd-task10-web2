@@ -1,7 +1,9 @@
 package info.sjd;
 
+import java.util.logging.Logger;
 import info.sjd.model.Product;
 import info.sjd.service.DataSaver;
+import info.sjd.service.ProxyResolver;
 
 public class AppRunner {
 	private static final String URL = "https://www.amazon.com/LG-gram-Thin-Light-Laptop/dp/B078WRSHV4/ref=sr_1_82_sspa";
@@ -12,15 +14,24 @@ public class AppRunner {
 
 	public static void main(String[] args) {
 
+		Logger logger = Logger.getLogger(AppRunner.class.getName());
 
-			// USE PROXY (switch off before commit)
-			PROXY = Boolean.TRUE;
+		PROXY = ProxyResolver.ResolveProxy("OGPzamPC");
+		logger.info("Proxy is " + PROXY.toString());
 
-			Product product = DataSaver.getData(URL, PROXY);
+		Product product = null;
 
-			if (product != null) {
-				DataSaver.saveToFile(DataSaver.toXML(product), FILE_NAME);
-			}
+		try {
+			product = DataSaver.getData(URL, PROXY);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		logger.info("Data have been extracted.");
+
+		if (product != null) {
+			DataSaver.saveToFile(DataSaver.toXML(product), FILE_NAME);
+		}
+		logger.info("Data have been saved.");
 
 	}
 

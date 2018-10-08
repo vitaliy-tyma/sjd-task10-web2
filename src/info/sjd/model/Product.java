@@ -3,16 +3,16 @@ package info.sjd.model;
 public class Product {
 	public String name;
 	public String url;
-	public String articleID;
+	public String asin;
 	public String price;
 	public String availability;
 	public String description;
 
-	public Product(String name, String url, String articleID, String price, String availability, String description) {
+	public Product(String name, String url, String asin, String price, String availability, String description) {
 		super();
 		this.name = name;
 		this.url = url;
-		this.articleID = articleID;
+		this.asin = asin;
 		this.price = price;
 		this.availability = availability;
 		this.description = description;
@@ -34,12 +34,12 @@ public class Product {
 		this.url = url;
 	}
 
-	public String getArticleID() {
-		return articleID;
+	public String getAsin() {
+		return asin;
 	}
 
-	public void setArticleID(String articleID) {
-		this.articleID = articleID;
+	public void setAsin(String asin) {
+		this.asin = asin;
 	}
 
 	public String getPrice() {
