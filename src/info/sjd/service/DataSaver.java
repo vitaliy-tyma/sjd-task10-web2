@@ -43,15 +43,15 @@ public class DataSaver {
 			connection.timeout(30 * 1000);
 			doc = connection.get();
 
-			/** Data from title */
+			/** Data from title.*/
 			try {
 				Element getDivTitle = doc.getElementById("titleSection");
-				// String[] product_title_quals = getDivTitle.text().split(",");
 				product_name = getDivTitle.text();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 
+			/** Price from html.*/
 			try {
 				Element getDivPrice = doc.getElementById("priceblock_ourprice");
 				product_price = getDivPrice.text();
@@ -59,6 +59,7 @@ public class DataSaver {
 				ex.printStackTrace();
 			}
 
+			/** Availability from html.*/
 			try {
 				Element getDivAvailability = doc.getElementById("availability");
 				product_availability = getDivAvailability.text();
@@ -66,7 +67,7 @@ public class DataSaver {
 				e.printStackTrace();
 			}
 
-			/** Get ASIN from the URL */
+			/** ASIN from URL.*/
 			String[] url_parts = url.split("/");
 			int i = 0;
 			for (String part : url_parts) {
@@ -77,24 +78,27 @@ public class DataSaver {
 			}
 			product_asin = url_parts[i];
 
-			/** Data from list */
-			Element getDivQuals = doc.getElementById("feature-bullets");
-			Elements quals = getDivQuals.getElementsByClass("a-list-item");
+			/** Description from list excluding hidden elements.*/
+			try {
+				Element getDivQuals = doc.getElementById("feature-bullets");
+				Elements quals = getDivQuals.getElementsByClass("a-list-item");
 
-			i = 0;
-			StringBuilder product_description_sb = new StringBuilder();
-			for (Element qual : quals) {
-				i++;
-				if (!qual.html().contains("replacementPartsFitmentBulletInner")) {
-					product_description_sb.append(qual.text());
-					if (i < quals.size()) {
-						product_description_sb.append(SEP + "		");
+				i = 0;
+				StringBuilder product_description_sb = new StringBuilder();
+				for (Element qual : quals) {
+					i++;
+					if (!qual.html().contains("replacementPartsFitmentBulletInner")) {
+						product_description_sb.append(qual.text());
+						if (i < quals.size()) {
+							product_description_sb.append(SEP + "		");
+						}
 					}
+
 				}
-
+				product_description = product_description_sb.toString();
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
-			product_description = product_description_sb.toString();
-
 
 			/** Create new product. */
 			product = new Product(product_name, product_url, product_asin, product_price, product_availability,
