@@ -1,13 +1,32 @@
 package info.sjd.service;
 
 import info.sjd.model.Product;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 import org.jsoup.Connection;
+
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringReader;
+import java.io.StringWriter;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 public class DataSaver {
 
@@ -54,7 +73,7 @@ public class DataSaver {
 			/** Price from html.*/
 			try {
 				Element getDivPrice = doc.getElementById("priceblock_ourprice");
-				product_price = getDivPrice.text();
+				product_price = getDivPrice.text().replaceAll("[^0-9]", "");
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
@@ -151,6 +170,84 @@ public class DataSaver {
 		result.append("</items>");
 
 		return result.toString();
+	}
+
+	
+	
+	
+	/** appendToFile 
+	 * @throws TransformerException 
+	 * @throws ParserConfigurationException 
+	 * @throws IOException 
+	 * @throws SAXException */
+	public static void appendToFile(Product product, String file_name) throws TransformerException, ParserConfigurationException, SAXException, IOException {
+
+		
+		
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        org.w3c.dom.Document doc = builder.parse(file_name);
+        doc.normalize();
+        Node item = doc.getFirstChild();
+
+		
+		//doc.appendChild(root);
+        item.appendChild(doc.createTextNode("Some"));
+		//root.appendChild(doc.createTextNode(" "));
+		//root.appendChild(doc.createTextNode("text"));
+		
+        Transformer transformer=TransformerFactory.newInstance().newTransformer();
+        transformer.transform(new DOMSource(), new StreamResult(new FileOutputStream(file_name)));
+		
+		/*Document doc = null;
+		try {
+			DocumentBuilderFactory factory  = DocumentBuilderFactory.newInstance();
+			DocumentBuilder builder = factory.newDocumentBuilder();
+			doc = (Document) builder.parse(new File(file_name));
+
+
+		
+		
+		
+		Transformer transformer = TransformerFactory.newInstance().newTransformer();
+		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+		transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+		transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+
+		//DOMSource domSource = new DOMSource();
+		//StreamResult sr = new StreamResult(new File(file_name));
+		//transformer.transform(domSource, sr);
+		/////////////////////////////////////////////////////
+        //Transformer transformer = TransformerFactory.newInstance().newTransformer();
+        //transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+
+        //+initialize StreamResult with File object to save to file
+        StreamResult result = new StreamResult(new StringWriter());
+        DOMSource source = new DOMSource();
+        transformer.transform(source, result);
+
+        String xmlString = result.getWriter().toString();
+        //System.out.println(xmlString);
+
+        PrintWriter output = new PrintWriter(file_name);
+		///////////////
+		
+		} catch (ParserConfigurationException e1) {
+			e1.printStackTrace();
+		} catch (SAXException e1) {
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}*/
+		
+		
+		////////////////////////////////////////////////////////////
+/*		try (FileWriter writer = new FileWriter(file_name)) {
+			writer.write("xml_data");
+			writer.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}*/
 	}
 
 }
