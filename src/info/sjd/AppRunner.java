@@ -17,7 +17,6 @@ public class AppRunner {
 		Logger logger = Logger.getLogger(AppRunner.class.getName());
 
 		PROXY = ProxyResolver.ResolveProxy("OGPzamPC");
-		logger.info("Proxy is " + PROXY.toString());
 
 		Product product = null;
 
@@ -26,12 +25,12 @@ public class AppRunner {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		logger.info("Data have been extracted.");
+		logger.info("Data has been extracted.");
 
 		if (product != null) {
 			DataSaver.saveToFile(DataSaver.toXML(product), FILE_NAME);
 		}
-		logger.info("Data have been saved.");
+		logger.info("Data has been saved.");
 
 	}
 
