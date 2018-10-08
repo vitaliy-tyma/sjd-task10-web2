@@ -81,22 +81,22 @@ public class DataSaver {
 			Element getDivQuals = doc.getElementById("feature-bullets");
 			Elements quals = getDivQuals.getElementsByClass("a-list-item");
 
-			/** Elements to array */
-			/* HOW TO ELIMINATE THIS TAG?!
-			 * <span class="a-list-item"> <span id="replacementPartsFitmentBulletInner"> <a
-			 * class="a-link-normal hsx-rpp-fitment-focus" href="#">Make sure this fits</a>
-			 * <span>by entering your model number.</span> </span> </span>
-			 * qual.text() = Make sure this fits by entering your model number.
-			 */
-			
+			i = 0;
 			StringBuilder product_description_sb = new StringBuilder();
 			for (Element qual : quals) {
-					product_description_sb.append(qual.text() + SEP);
+				i++;
+				if (!qual.html().contains("replacementPartsFitmentBulletInner")) {
+					product_description_sb.append(qual.text());
+					if (i < quals.size()) {
+						product_description_sb.append(SEP + "		");
+					}
+				}
+
 			}
 			product_description = product_description_sb.toString();
 
 
-
+			/** Create new product. */
 			product = new Product(product_name, product_url, product_asin, product_price, product_availability,
 					product_description);
 		} catch (IOException e) {
@@ -143,11 +143,6 @@ public class DataSaver {
 		result.append(surroundWithXML("asin", product.getAsin()));
 		result.append(surroundWithXML("description", product.getDescription()));
 
-		/*
-		 * for (String qual : product.quals) { if (!qual.isEmpty()) {
-		 * result.append("		<description>" + SEP); result.append("		" + qual);
-		 * result.append(SEP); result.append("		</description>" + SEP); } }
-		 */
 		result.append("	</item>" + SEP);
 		result.append("</items>");
 
