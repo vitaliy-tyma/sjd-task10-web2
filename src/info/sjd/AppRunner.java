@@ -21,7 +21,7 @@ public class AppRunner {
 	private static final String FILE_NAME = DIR_NAME + "task10.xml";
 	private static Boolean PROXY = Boolean.FALSE;
 
-	public static void main(String[] args) throws TransformerException, ParserConfigurationException, SAXException, IOException {
+	public static void main(String[] args) {
 
 		Logger logger = Logger.getLogger(AppRunner.class.getName());
 

@@ -6,27 +6,17 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 import org.jsoup.Connection;
 
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringReader;
-import java.io.StringWriter;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
+import java.util.LinkedList;
+import java.util.List;
 
 public class DataSaver {
 
@@ -62,7 +52,7 @@ public class DataSaver {
 			connection.timeout(30 * 1000);
 			doc = connection.get();
 
-			/** Data from title.*/
+			/** Data from title. */
 			try {
 				Element getDivTitle = doc.getElementById("titleSection");
 				product_name = getDivTitle.text();
@@ -70,7 +60,7 @@ public class DataSaver {
 				e.printStackTrace();
 			}
 
-			/** Price from html.*/
+			/** Price from html. */
 			try {
 				Element getDivPrice = doc.getElementById("priceblock_ourprice");
 				product_price = getDivPrice.text().replaceAll("[^0-9]", "");
@@ -78,7 +68,7 @@ public class DataSaver {
 				ex.printStackTrace();
 			}
 
-			/** Availability from html.*/
+			/** Availability from html. */
 			try {
 				Element getDivAvailability = doc.getElementById("availability");
 				product_availability = getDivAvailability.text();
@@ -86,7 +76,7 @@ public class DataSaver {
 				e.printStackTrace();
 			}
 
-			/** ASIN from URL.*/
+			/** ASIN from URL. */
 			String[] url_parts = url.split("/");
 			int i = 0;
 			for (String part : url_parts) {
@@ -97,7 +87,7 @@ public class DataSaver {
 			}
 			product_asin = url_parts[i];
 
-			/** Description from list excluding hidden elements.*/
+			/** Description from list excluding hidden elements. */
 			try {
 				Element getDivQuals = doc.getElementById("feature-bullets");
 				Elements quals = getDivQuals.getElementsByClass("a-list-item");
@@ -132,7 +122,9 @@ public class DataSaver {
 	public static void saveToFile(String xml_data, String file_name) {
 
 		try (FileWriter writer = new FileWriter(file_name)) {
+			writer.write(StartXML());
 			writer.write(xml_data);
+			writer.write(FinishXML());
 			writer.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -149,105 +141,76 @@ public class DataSaver {
 		return result.toString();
 	}
 
+	/** Start XML. */
+	public static String StartXML() {
+		StringBuilder result = new StringBuilder();
+		result.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + SEP);
+		result.append("<!DOCTYPE xml>" + SEP);
+		result.append("<items>" + SEP);
+		return result.toString();
+	}
+
+	/** Finish XML. */
+	public static String FinishXML() {
+		StringBuilder result = new StringBuilder();
+		result.append("</items>");
+		return result.toString();
+	}
+
 	/** Parse to XML. */
 	public static String toXML(Product product) {
 		StringBuilder result = new StringBuilder();
-
-		result.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + SEP);
-		result.append("<!DOCTYPE xml>" + SEP);
-
-		result.append("<items>" + SEP);
 		result.append("	<item>" + SEP);
-
 		result.append(surroundWithXML("name", product.getName()));
 		result.append(surroundWithXML("price", product.getPrice()));
 		result.append(surroundWithXML("availability", product.getAvailability()));
 		result.append(surroundWithXML("url", product.getUrl()));
 		result.append(surroundWithXML("asin", product.getAsin()));
 		result.append(surroundWithXML("description", product.getDescription()));
-
 		result.append("	</item>" + SEP);
-		result.append("</items>");
-
 		return result.toString();
 	}
 
-	
-	
-	
-	/** appendToFile 
-	 * @throws TransformerException 
-	 * @throws ParserConfigurationException 
-	 * @throws IOException 
-	 * @throws SAXException */
-	public static void appendToFile(Product product, String file_name) throws TransformerException, ParserConfigurationException, SAXException, IOException {
+	/**
+	 * appendToFile
+	 * 
+	 * @throws TransformerException
+	 * @throws ParserConfigurationException
+	 * @throws IOException
+	 * @throws SAXException
+	 */
+	public static void appendToFile(Product product, String file_name) {
 
-		
-		
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        org.w3c.dom.Document doc = builder.parse(file_name);
-        doc.normalize();
-        Node item = doc.getFirstChild();
+		List<String> st_list = new LinkedList<String>();
+		String st;
 
-		
-		//doc.appendChild(root);
-        item.appendChild(doc.createTextNode("Some"));
-		//root.appendChild(doc.createTextNode(" "));
-		//root.appendChild(doc.createTextNode("text"));
-		
-        Transformer transformer=TransformerFactory.newInstance().newTransformer();
-        transformer.transform(new DOMSource(), new StreamResult(new FileOutputStream(file_name)));
-		
-		/*Document doc = null;
 		try {
-			DocumentBuilderFactory factory  = DocumentBuilderFactory.newInstance();
-			DocumentBuilder builder = factory.newDocumentBuilder();
-			doc = (Document) builder.parse(new File(file_name));
+			File file = new File(file_name);
+			BufferedReader reader = new BufferedReader(new FileReader(file));
 
+			while ((st = reader.readLine()) != null) {
+				st_list.add(st);
 
-		
-		
-		
-		Transformer transformer = TransformerFactory.newInstance().newTransformer();
-		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-		transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-		transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-
-		//DOMSource domSource = new DOMSource();
-		//StreamResult sr = new StreamResult(new File(file_name));
-		//transformer.transform(domSource, sr);
-		/////////////////////////////////////////////////////
-        //Transformer transformer = TransformerFactory.newInstance().newTransformer();
-        //transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-
-        //+initialize StreamResult with File object to save to file
-        StreamResult result = new StreamResult(new StringWriter());
-        DOMSource source = new DOMSource();
-        transformer.transform(source, result);
-
-        String xmlString = result.getWriter().toString();
-        //System.out.println(xmlString);
-
-        PrintWriter output = new PrintWriter(file_name);
-		///////////////
-		
-		} catch (ParserConfigurationException e1) {
-			e1.printStackTrace();
-		} catch (SAXException e1) {
-			e1.printStackTrace();
+			}
 		} catch (IOException e1) {
 			e1.printStackTrace();
-		}*/
-		
-		
-		////////////////////////////////////////////////////////////
-/*		try (FileWriter writer = new FileWriter(file_name)) {
-			writer.write("xml_data");
+		}
+
+		StringBuilder stb = new StringBuilder();
+		for (int i = 0; i < st_list.size() - 1; i++) {
+			stb.append(st_list.get((i)));
+			stb.append(SEP);
+		}
+
+		stb.append(toXML(product));
+		stb.append(FinishXML());
+
+		try (FileWriter writer = new FileWriter(file_name)) {
+			writer.write(stb.toString());
 			writer.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
-		}*/
+		}
 	}
 
 }
